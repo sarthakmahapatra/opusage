@@ -95,7 +95,13 @@ opusage --format csv | column -s, -t
 
 opusage also ships an OpenCode TUI plugin that pins a live usage panel to the session sidebar — tokens, cache hit rate, and cost for the session *including sub-agents*, updated as you chat.
 
-Add it to `~/.config/opencode/opencode.json` (or `cli.json` if you connect to a remote server):
+**From a checkout** (no install needed — OpenCode resolves the plugin API at runtime):
+
+```sh
+cd opusage && npm run devlink   # copies the plugin into ~/.config/opencode/plugins/opusage/
+```
+
+**From npm:** add the package to `~/.config/opencode/opencode.json` (or `cli.json` if you connect to a remote server):
 
 ```json
 {

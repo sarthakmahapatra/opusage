@@ -14,6 +14,7 @@
   "files": [
     "bin",
     "src",
+    "scripts",
     "README.md",
     "LICENSE"
   ],
@@ -53,6 +54,7 @@
     "typescript": "^5.9.0"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "devlink": "node scripts/devlink.mjs"
   }
 }

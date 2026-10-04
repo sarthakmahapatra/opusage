@@ -10,6 +10,13 @@ import { Plugin, usePlugin } from "@opencode/plugin/tui"
 export default Plugin.define({
   id: "opusage",
   setup(context) {
+    // Load marker: proves setup() ran; inspectable via plugin storage.
+    const [, updateMarker] = context.storage.store("load-marker", { initial: { at: 0 } })
+    void updateMarker((draft) => {
+      draft.at = Date.now()
+    })
+    context.ui.toast.show({ title: "opusage", message: "usage panel loaded", variant: "success" })
+
     context.ui.slot({
       append: "sidebar.content",
       render: (props) => <UsagePanel sessionID={props.sessionID} />,
