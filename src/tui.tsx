@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js"
+import { createSignal, onMount } from "solid-js"
 import { Plugin, usePlugin } from "@opencode/plugin/tui"
 import type { TabSelectOption } from "@opentui/core"
 
@@ -131,6 +131,34 @@ export default Plugin.define({
       const denom = input + cacheRead
       const hit = denom > 0 ? Math.round((cacheRead / denom) * 100) : 0
 
+      // The sidebar does not route mouse clicks to plugin content, so scope
+      // switching is driven from the prompt: /usage [scope] (argument sets,
+      // no argument cycles) and the command palette (ctrl+p, "usage").
+      onMount(() => {
+        context.keymap.layer(() => ({
+          mode: "global",
+          commands: [
+            {
+              id: "opusage.scope",
+              title: "Usage: switch scope",
+              description: "Set the usage panel scope: /usage 24h (or 7d, today, all) — no argument cycles",
+              group: "opusage",
+              palette: true,
+              slash: { name: "usage", arguments: true },
+              run: (input) => {
+                const arg = (input ?? "").trim().toLowerCase()
+                const match = SCOPES.find((s) => s.key === arg || s.name === arg)
+                if (match) {
+                  setScope(match.key)
+                  return
+                }
+                const i = Math.max(0, SCOPES.findIndex((s) => s.key === scope()))
+                setScope(SCOPES[(i + 1) % SCOPES.length].key)
+              },
+            },
+          ],
+        }))
+      })
 
       // The stats row stretches to the sidebar width so long values wrap
       // instead of overflowing.
