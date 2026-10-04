@@ -8,22 +8,24 @@ Track [OpenCode](https://opencode.ai)'s token usage and cost per **project**, **
 $ opusage --days 2
 opusage · last 2d · 10 sessions · ~/.local/share/opencode/opencode.db
 project       sessions  in     out    rsn   cache  hit  cost   total
-try_opencode         9  73.5m   467k  892k     2m   3%  $0.00  76.9m
-try_pi               1   2.7m  24.6k   53k      0    -  $0.00   2.8m
+try_opencode         9  90.4M   506k  998k     2M   2%  $0.00  93.9M
+try_pi               1   2.7M  24.6k   53k      0    -  $0.00   2.8M
 
-total               10  76.2m   492k   945k     2m   3%  $0.00  79.7m
+total               10  93.1M   531k  1.1M     2M   2%  $0.00  96.7M
 
 $ opusage --sessions 4
 session                                  sessions  in     out    rsn    cache  hit  cost   total
-Kalshi perpetuals explained                     4  45.8m   260k   403k      0    -  $0.00  46.4m
-Modern Pac-Man game                             5    25m   185k   448k     2m   7%  $0.00  27.7m
-OpenCode + LM Studio memory pr…                 1   2.7m  24.6k    53k      0    -  $0.00   2.8m
-OpenCode token consumption las…                 1   2.6m  17.1k  33.6k      0    -  $0.00   2.6m
+Kalshi perpetuals explained                     4  45.8M   260k  403k      0    -  $0.00  46.4M
+Modern Pac-Man game                             5    25M   185k  448k     2M   7%  $0.00  27.7M
+OpenCode token consumption las…                 1  19.4M  56.2k  140k      0    -  $0.00  19.6M
+OpenCode + LM Studio memory pr…                 1   2.7M  24.6k   53k      0    -  $0.00   2.8M
 
-2 of 4 sessions include sub-agent usage            76.2m   492k   945k     2m   3%  $0.00  79.7m
+2 of 4 sessions include sub-agent usage            93.1M   531k  1.1M     2M   2%  $0.00  96.7M
 
-total                                          10  76.2m   492k   945k     2m   3%  $0.00  79.7m
+total                                          10  93.1M   531k  1.1M     2M   2%  $0.00  96.7M
 ```
+
+(`M` is millions, `k` is thousands; `b` is billions.)
 
 ## Features
 
@@ -57,7 +59,7 @@ npm install -g opusage
 Or run from a checkout without installing:
 
 ```sh
-git clone https://github.com/<you>/opusage
+git clone https://github.com/sarthakmahapatra/opusage
 node opusage/bin/opusage.js --help
 ```
 
@@ -95,12 +97,6 @@ opusage --format csv | column -s, -t
 
 opusage also ships an OpenCode TUI plugin that pins a live usage panel to the session sidebar — tokens, cache hit rate, and cost for the session *including sub-agents*, updated as you chat.
 
-**From a checkout** (no install needed — OpenCode resolves the plugin API at runtime):
-
-```sh
-cd opusage && npm run devlink   # copies the plugin into ~/.config/opencode/plugins/opusage/
-```
-
 **From npm:** add the package to `~/.config/opencode/opencode.json` (or `cli.json` if you connect to a remote server):
 
 ```json
@@ -110,16 +106,22 @@ cd opusage && npm run devlink   # copies the plugin into ~/.config/opencode/plug
 }
 ```
 
-Restart OpenCode and open any session:
+**From a checkout:** devlink copies the plugin into OpenCode's discovery directory and links its `node_modules`:
+
+```sh
+cd opusage
+npm install      # pulls the TUI runtime deps (@opencode/plugin, OpenTUI, solid)
+npm run devlink
+```
+
+Restart OpenCode (or let it hot-reload) and open any session — the sidebar shows the current session's stats, including sub-agents:
 
 ```
-usage   1.2m tokens · 3 sessions
-in 1.1m · out 8.4k · rsn 3.1k
-cache 12.3k read · 1.2k write · 18% hit
-cost    $1.23
+Usage · 3 sessions
+in 1.1M · out 8.4k · rsn 3.1k · cache 18% · cost $1.23
 ```
 
-(Requires OpenCode v2 with the V2 plugin API; the widget uses the `Session.Info` aggregates, so it needs no database access of its own.)
+(Requires OpenCode v2 with the V2 plugin API; the widget reads OpenCode's `Session.Info` aggregates, so it needs no database access of its own.)
 
 ## Caveats
 

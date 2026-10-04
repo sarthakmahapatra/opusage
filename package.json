@@ -4,6 +4,18 @@
   "description": "Track OpenCode token usage and cost per project, model, and session — zero-dependency CLI plus a live TUI widget",
   "type": "module",
   "license": "MIT",
+  "author": "sarthakmahapatra",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sarthakmahapatra/opusage.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sarthakmahapatra/opusage/issues"
+  },
+  "homepage": "https://github.com/sarthakmahapatra/opusage#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "bin": {
     "opusage": "./bin/opusage.js"
   },

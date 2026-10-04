@@ -1,10 +1,10 @@
-/** 1234 -> "1.2k", 1234567 -> "1.2m", 12345678 -> "12m" */
+/** 1234 -> "1.2k", 1234567 -> "1.2M", 12345678 -> "12M" — M is millions (SI) */
 export function human(n: number): string {
   if (!Number.isFinite(n) || n < 0) return "-"
   if (n < 1e3) return String(Math.round(n))
   const scale = (x: number) => (x >= 100 ? String(Math.round(x)) : x.toFixed(1).replace(/\.0$/, ""))
   if (n >= 1e9) return scale(n / 1e9) + "b"
-  if (n >= 1e6) return scale(n / 1e6) + "m"
+  if (n >= 1e6) return scale(n / 1e6) + "M"
   return scale(n / 1e3) + "k"
 }
 

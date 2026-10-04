@@ -3,11 +3,15 @@
 // Sync this repository's plugin sources into OpenCode's global plugin
 // discovery directory (~/.config/opencode/plugins/opusage/).
 //
-// Discovered plugins get `@opencode/plugin` resolved by OpenCode at runtime,
-// so this works without `npm install` and without publishing to npm.
-// OpenCode loads discovered plugins at startup — restart after running this.
+// The panel imports @opencode/plugin, @opencode/theme, and the OpenTUI
+// packages, which OpenCode does NOT resolve for you — so this also symlinks
+// the repository's node_modules into the plugin directory (run `npm install`
+// here first if it doesn't exist yet).
 //
-import { cpSync, mkdirSync, writeFileSync } from "node:fs"
+// OpenCode watches the discovery directory and reconciles on file changes, so
+// no restart is usually needed; if the TUI is closed, just reopen it.
+//
+import { cpSync, existsSync, lstatSync, mkdirSync, readlinkSync, rmSync, symlinkSync, writeFileSync } from "node:fs"
 import os from "node:os"
 import path from "node:path"
 
@@ -26,5 +30,23 @@ writeFileSync(
     'export { default } from "./panel.tsx"\n',
 )
 
+// Make the panel's dependencies resolvable from the plugin directory.
+const link = path.join(configDir, "node_modules")
+const repoModules = path.join(root, "node_modules")
+if (!existsSync(repoModules)) {
+  console.log(`opusage: plugin synced to ${configDir}`)
+  console.log(`Run \`npm install\` in ${root} so the plugin's dependencies exist.`)
+  process.exit(1)
+}
+try {
+  const st = lstatSync(link)
+  const correct = st.isSymbolicLink() && path.resolve(configDir, readlinkSync(link)) === repoModules
+  if (!correct) rmSync(link, { recursive: true, force: true })
+  if (!existsSync(link)) symlinkSync(repoModules, link)
+} catch {
+  symlinkSync(repoModules, link)
+}
+
 console.log(`opusage: plugin synced to ${configDir}`)
-console.log("Restart OpenCode to load it.")
+console.log(`node_modules linked -> ${repoModules}`)
+console.log("OpenCode watches that directory and reloads on changes.")
