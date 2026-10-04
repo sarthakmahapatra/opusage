@@ -1,0 +1,58 @@
+{
+  "name": "opusage",
+  "version": "0.1.0",
+  "description": "Track OpenCode token usage and cost per project, model, and session — zero-dependency CLI plus a live TUI widget",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "opusage": "./bin/opusage.js"
+  },
+  "exports": {
+    ".": "./src/server.ts",
+    "./tui": "./src/tui.tsx"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=23.6"
+  },
+  "keywords": [
+    "opencode",
+    "tokens",
+    "usage",
+    "cost",
+    "llm",
+    "cli",
+    "tui"
+  ],
+  "dependencies": {
+    "@opencode/plugin": "latest"
+  },
+  "peerDependencies": {
+    "@opentui/core": "*",
+    "@opentui/solid": "*",
+    "solid-js": "*"
+  },
+  "peerDependenciesMeta": {
+    "@opentui/core": {
+      "optional": true
+    },
+    "@opentui/solid": {
+      "optional": true
+    },
+    "solid-js": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  }
+}
