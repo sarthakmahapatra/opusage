@@ -7,8 +7,10 @@ import { Plugin, usePlugin } from "@opencode/plugin/tui"
  * Data comes from OpenCode's session aggregates (Session.Info), which OpenCode
  * updates as the session runs, so the panel stays current without polling.
  *
- * Layout — a "Usage" header, then one flowing row of stats, each in its own
- * color (wraps at the sidebar width):
+ * Layout — a "Usage" header (accent) with the session count (muted), then one
+ * flowing row of stats that wraps at the sidebar width. in/out/rsn each have
+ * their own color; the session count, cache, and cost use the muted color so
+ * they sit visually behind the primary numbers:
  *   Usage · 2 sessions
  *   in 17.8M · out 64k · rsn 154k · cache 82% · cost $1.23
  */
@@ -75,11 +77,9 @@ function UsagePanel({ sessionID }: { sessionID?: string }) {
   // Semantic colors from the active theme, so the panel follows any palette.
   const accent = theme.hue.accent[500]
   const muted = theme.text.muted
-  const base = theme.text.base
   const info = theme.text.feedback.info.base
   const success = theme.text.feedback.success.base
   const warning = theme.text.feedback.warning.base
-  const neutral = theme.hue.neutral[600]
 
   const denom = input + cacheRead
   const hit = denom > 0 ? Math.round((cacheRead / denom) * 100) : 0
@@ -102,9 +102,9 @@ function UsagePanel({ sessionID }: { sessionID?: string }) {
         <text fg={muted}>·</text>
         <text fg={warning} wrapMode="word" truncate={false}>rsn {fmt(reasoning)}</text>
         <text fg={muted}>·</text>
-        <text fg={neutral} wrapMode="word" truncate={false}>cache {denom > 0 ? hit + "%" : "–"}</text>
+        <text fg={muted} wrapMode="word" truncate={false}>cache {denom > 0 ? hit + "%" : "–"}</text>
         <text fg={muted}>·</text>
-        <text fg={cost > 0 ? success : base} wrapMode="word" truncate={false}>cost {money(cost)}</text>
+        <text fg={muted} wrapMode="word" truncate={false}>cost {money(cost)}</text>
       </box>
     </box>
   )
