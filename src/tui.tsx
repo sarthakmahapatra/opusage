@@ -6,17 +6,15 @@ import { Plugin, usePlugin } from "@opencode/plugin/tui"
  *
  * Data comes from OpenCode's session aggregates (Session.Info), which OpenCode
  * updates as the session runs, so the panel stays current without polling.
+ *
+ * Layout — a "Usage" header, then one flowing row of stats, each in its own
+ * color (wraps at the sidebar width):
+ *   Usage · 2 sessions
+ *   in 17.8M · out 64k · rsn 154k · cache 82% · cost $1.23
  */
 export default Plugin.define({
   id: "opusage",
   setup(context) {
-    // Load marker: proves setup() ran; inspectable via plugin storage.
-    const [, updateMarker] = context.storage.store("load-marker", { initial: { at: 0 } })
-    void updateMarker((draft) => {
-      draft.at = Date.now()
-    })
-    context.ui.toast.show({ title: "opusage", message: "usage panel loaded", variant: "success" })
-
     context.ui.slot({
       append: "sidebar.content",
       render: (props) => <UsagePanel sessionID={props.sessionID} />,
@@ -24,12 +22,13 @@ export default Plugin.define({
   },
 })
 
+/** Compact number: 64k, 17.8M, 1.2b — M is millions (SI), k is thousands. */
 function fmt(n: number): string {
   if (!Number.isFinite(n) || n < 0) return "0"
   if (n < 1e3) return String(Math.round(n))
   const scale = (x: number) => (x >= 100 ? String(Math.round(x)) : x.toFixed(1).replace(/\.0$/, ""))
   if (n >= 1e9) return scale(n / 1e9) + "b"
-  if (n >= 1e6) return scale(n / 1e6) + "m"
+  if (n >= 1e6) return scale(n / 1e6) + "M"
   return scale(n / 1e3) + "k"
 }
 
@@ -42,6 +41,7 @@ function money(n: number): string {
 
 function UsagePanel({ sessionID }: { sessionID?: string }) {
   const context = usePlugin()
+  const theme = context.theme
 
   let input = 0
   let output = 0
@@ -70,17 +70,42 @@ function UsagePanel({ sessionID }: { sessionID?: string }) {
     }
   }
 
-  const total = input + output + reasoning + cacheRead + cacheWrite
+  if (!sessionID) return <box shouldFill={false} />
+
+  // Semantic colors from the active theme, so the panel follows any palette.
+  const accent = theme.hue.accent[500]
+  const muted = theme.text.muted
+  const base = theme.text.base
+  const info = theme.text.feedback.info.base
+  const success = theme.text.feedback.success.base
+  const warning = theme.text.feedback.warning.base
+  const neutral = theme.hue.neutral[600]
+
   const denom = input + cacheRead
   const hit = denom > 0 ? Math.round((cacheRead / denom) * 100) : 0
-  const fg = context.theme.text.base
+
+  // The stats row stretches to the sidebar width so long values wrap
+  // instead of overflowing.
+  const headerRow = { flexDirection: "row" as const, flexWrap: "no-wrap" as const, columnGap: 1 }
+  const row = { flexDirection: "row" as const, flexGrow: 1, flexWrap: "wrap" as const, columnGap: 1 }
 
   return (
-    <box>
-      <text fg={fg}>usage   {fmt(total)} tokens{members > 1 ? ` · ${members} sessions` : ""}</text>
-      <text fg={fg}>in {fmt(input)} · out {fmt(output)} · rsn {fmt(reasoning)}</text>
-      <text fg={fg}>cache {fmt(cacheRead)} read · {fmt(cacheWrite)} write · {hit}% hit</text>
-      <text fg={fg}>cost    {money(cost)}</text>
+    <box shouldFill>
+      <box {...headerRow}>
+        <text fg={accent}>Usage</text>
+        {members > 1 ? <text fg={muted}>· {members} sessions</text> : null}
+      </box>
+      <box {...row}>
+        <text fg={info} wrapMode="word" truncate={false}>in {fmt(input)}</text>
+        <text fg={muted}>·</text>
+        <text fg={success} wrapMode="word" truncate={false}>out {fmt(output)}</text>
+        <text fg={muted}>·</text>
+        <text fg={warning} wrapMode="word" truncate={false}>rsn {fmt(reasoning)}</text>
+        <text fg={muted}>·</text>
+        <text fg={neutral} wrapMode="word" truncate={false}>cache {denom > 0 ? hit + "%" : "–"}</text>
+        <text fg={muted}>·</text>
+        <text fg={cost > 0 ? success : base} wrapMode="word" truncate={false}>cost {money(cost)}</text>
+      </box>
     </box>
   )
 }
