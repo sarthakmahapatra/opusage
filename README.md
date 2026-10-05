@@ -34,7 +34,7 @@ total                                          10  93.1M   531k  1.1M     2M   2
 - **Time windows** — `--days 2`, `--since 2026-10-01` (matches session start by default; `--active` matches last activity)
 - **Filters** — `--project .` (current project) or any path/name/ID
 - **Output** — aligned table (default), `--format json`, `--format csv`
-- **Zero dependencies** — uses Node's built-in `node:sqlite`; no `node_modules`, no native builds, works offline
+- **Zero runtime dependencies (CLI)** — uses Node's built-in `node:sqlite`; no native builds, works offline
 - **Read-only** — opusage never writes to OpenCode's database
 - **Live TUI widget** — optional sidebar panel with real-time per-session usage (see below)
 
@@ -47,7 +47,7 @@ Costs are whatever OpenCode recorded per session, which OpenCode computes from p
 
 ## Requirements
 
-- Node.js ≥ 23.6 (or ≥ 22.5 with `--experimental-strip-types`)
+- Node.js ≥ 23.6 (or ≥ 22.5 with `--experimental-sqlite`)
 - OpenCode v2 (built and tested against v2.0.22)
 
 ## Install
@@ -131,18 +131,25 @@ in 1.1M · out 8.4k · rsn 3.1k · cache 18% · cost $1.23
 
 ## Development
 
-No build step:
+The CLI ships as a small esbuild bundle (Node can't type-strip files inside `node_modules`); the TUI widget ships as TSX, which OpenCode's bun runtime executes directly.
 
 ```sh
+npm install           # also builds dist/cli.js
 node bin/opusage.js --help
 ```
 
-Type-checking and the test suite (requires network for `npm install`):
+Type-checking and the test suite (the suite builds the bundle first, then runs 66 tests):
 
 ```sh
 npm install
 npm run typecheck
-npm test        # node --test, zero extra dependencies; the suite builds its own fixture databases
+npm test              # node --test; builds its own fixture databases
+```
+
+Publishing:
+
+```sh
+npm publish           # prepack rebuilds dist/ and includes it in the tarball
 ```
 
 ## License

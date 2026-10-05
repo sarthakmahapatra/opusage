@@ -1,6 +1,6 @@
 {
   "name": "opusage",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Track OpenCode token usage and cost per project, model, and session — zero-dependency CLI plus a live TUI widget",
   "type": "module",
   "license": "MIT",
@@ -26,6 +26,7 @@
   "files": [
     "bin",
     "src",
+    "dist",
     "scripts",
     "README.md",
     "LICENSE"
@@ -51,11 +52,15 @@
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
+    "esbuild": "^0.28.2",
     "typescript": "^5.9.0"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "node --test \"test/*.test.ts\"",
+    "build": "node scripts/build.mjs",
+    "test": "node scripts/build.mjs && node --test \"test/*.test.ts\"",
+    "prepare": "node scripts/build.mjs",
+    "prepack": "node scripts/build.mjs",
     "devlink": "node scripts/devlink.mjs"
   }
 }
