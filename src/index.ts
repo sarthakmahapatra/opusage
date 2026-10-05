@@ -13,7 +13,7 @@ import {
 import { cacheHitRate, emptyUsage, totalTokens, type Usage } from "./types.ts"
 import { clean, clip, csv, date, human, money, pct, table } from "./render.ts"
 
-export const VERSION = "0.2.0"
+export const VERSION = "0.2.1"
 
 interface Args {
   days?: number

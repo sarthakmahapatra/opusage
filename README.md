@@ -152,6 +152,8 @@ Publishing:
 npm publish           # prepack rebuilds dist/ and includes it in the tarball
 ```
 
+The `@babel/core` override in `package.json` forces ≥ 7.29.6, because `@opentui/solid` (a dependency of the TUI widget, from OpenCode) hard-pins 7.28.0, which carries a low-severity advisory (CVE-2026-49356, patched in 7.29.6) that the exact pin can't reach.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

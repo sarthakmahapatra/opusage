@@ -1,6 +1,6 @@
 {
   "name": "opusage",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Track OpenCode token usage and cost per project, model, and session — zero-dependency CLI plus a live TUI widget",
   "type": "module",
   "license": "MIT",
@@ -43,6 +43,9 @@
     "cli",
     "tui"
   ],
+  "overrides": {
+    "@babel/core": "^7.29.6"
+  },
   "dependencies": {
     "@opencode/plugin": "^2.0.22",
     "@opencode/theme": "^2.0.22",
