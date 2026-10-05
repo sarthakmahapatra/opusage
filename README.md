@@ -152,7 +152,11 @@ Publishing:
 npm publish           # prepack rebuilds dist/ and includes it in the tarball
 ```
 
-The `@babel/core` override in `package.json` forces ≥ 7.29.6, because `@opentui/solid` (a dependency of the TUI widget, from OpenCode) hard-pins 7.28.0, which carries a low-severity advisory (CVE-2026-49356, patched in 7.29.6) that the exact pin can't reach.
+## Dependency scans
+
+Security scanners (Socket, npm audit, …) report **4 low-severity advisories** for this package. None are in opusage's own code — all trace to OpenCode's TUI framework: `@opentui/solid` (a required widget dependency) hard-pins `@babel/core 7.28.0`, which carries a single low-severity advisory (CVE-2026-49356, arbitrary file read via a `sourceMappingURL` comment; fixed in `@babel/core 7.29.6`). The advisory only matters to code that compiles attacker-controlled input through Babel — not to a plugin compiling its own trusted sources — and the `7.28.0` pin is OpenCode's, shared by the OpenCode TUI itself.
+
+npm applies `overrides` only from the installing project's root, so a published package can't fix an upstream pin for its consumers; the local override in `package.json` keeps this repository's own tree on the patched Babel. Watch the [opentui repo](https://github.com/anomalyco/opentui) for a release that unpins Babel, after which the scans will go to zero.
 
 ## License
 
