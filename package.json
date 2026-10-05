@@ -55,6 +55,7 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "test": "node --test \"test/*.test.ts\"",
     "devlink": "node scripts/devlink.mjs"
   }
 }

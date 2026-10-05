@@ -104,11 +104,14 @@ export function filterProject(roots: RootSession[], projectId: string): RootSess
 
 /** Resolve a `--project` argument (path, ".", name, or id) to a project id. */
 export function resolveProjectId(projects: ProjectRow[], spec: string): string | null {
+  // Normalize separators so "." and path specs work on Windows (C:\...) and POSIX.
+  const norm = (p: string) => p.replace(/\\/g, "/").toLowerCase()
   if (spec === ".") {
-    const cwd = process.cwd()
+    const cwd = norm(process.cwd())
     let best: ProjectRow | null = null
     for (const p of projects) {
-      if (cwd === p.worktree || cwd.startsWith(p.worktree + "/")) {
+      const w = norm(p.worktree)
+      if (cwd === w || cwd.startsWith(w + "/")) {
         if (!best || p.worktree.length > best.worktree.length) best = p
       }
     }
@@ -118,7 +121,7 @@ export function resolveProjectId(projects: ProjectRow[], spec: string): string |
   const found =
     projects.find((p) => p.id === spec) ??
     projects.find((p) => (p.name ?? "").toLowerCase() === s) ??
-    projects.find((p) => p.worktree.toLowerCase().includes(s))
+    projects.find((p) => norm(p.worktree).includes(s))
   return found?.id ?? null
 }
 
@@ -195,5 +198,3 @@ function pathBasename(p: string): string {
   const parts = p.split(/[\\/]/).filter(Boolean)
   return parts[parts.length - 1] || p
 }
-
-export { cacheHitRate, totalTokens }

@@ -51,8 +51,9 @@ export function findDbPath(explicit?: string): string {
  * never issues a write.
  */
 export function openDb(dbPath: string): DatabaseSync {
+  let db: DatabaseSync
   try {
-    return new DatabaseSync(dbPath)
+    db = new DatabaseSync(dbPath)
   } catch (e) {
     fail(
       `could not open ${dbPath}: ${(e as Error).message}\n` +
@@ -60,6 +61,19 @@ export function openDb(dbPath: string): DatabaseSync {
         "(canonical location: `opencode debug paths db`)",
     )
   }
+  // SQLite opens lazily: a truncated, corrupt, or non-SQLite file only fails
+  // on the first schema query. Probe it now for a clean, actionable error.
+  try {
+    db.prepare("SELECT name FROM sqlite_master").get()
+  } catch (e) {
+    db.close()
+    fail(
+      `could not read ${dbPath}: ${(e as Error).message}\n` +
+        "  The file is not a valid SQLite database. If this is OpenCode's database,\n" +
+        "  it may be corrupt or mid-write — try again, or pass a different file with --db.",
+    )
+  }
+  return db
 }
 
 const SESSION_COLUMNS = [
@@ -90,14 +104,18 @@ export function loadSessions(db: DatabaseSync): SessionRow[] {
         "  or file an issue at the repository with your `opencode --version` output.",
     )
   }
-  return db.prepare(`SELECT ${SESSION_COLUMNS.join(", ")} FROM session_v2`).all() as unknown as SessionRow[]
+  // node:sqlite hands back rows with a null prototype; normalize to plain
+  // objects so the SessionRow/ProjectRow contract is what callers actually get.
+  const rows = db.prepare(`SELECT ${SESSION_COLUMNS.join(", ")} FROM session_v2`).all() as Array<Record<string, unknown>>
+  return rows.map((r) => ({ ...r })) as unknown as SessionRow[]
 }
 
 export function loadProjects(db: DatabaseSync): ProjectRow[] {
   const info = db.prepare("PRAGMA table_info(project)").all() as Array<{ name: string }>
   if (info.length === 0 || !info.some((r) => r.name === "worktree")) return []
   try {
-    return db.prepare("SELECT id, worktree, name FROM project").all() as unknown as ProjectRow[]
+    const rows = db.prepare("SELECT id, worktree, name FROM project").all() as Array<Record<string, unknown>>
+    return rows.map((r) => ({ ...r })) as unknown as ProjectRow[]
   } catch {
     return []
   }

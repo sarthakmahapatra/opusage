@@ -137,11 +137,12 @@ No build step:
 node bin/opusage.js --help
 ```
 
-Type-checking (requires network for `npm install`):
+Type-checking and the test suite (requires network for `npm install`):
 
 ```sh
 npm install
 npm run typecheck
+npm test        # node --test, zero extra dependencies; the suite builds its own fixture databases
 ```
 
 ## License

@@ -11,7 +11,7 @@ import {
   type RootSession,
 } from "./aggregate.ts"
 import { cacheHitRate, emptyUsage, totalTokens, type Usage } from "./types.ts"
-import { clip, csv, date, human, money, pct, table } from "./render.ts"
+import { clean, clip, csv, date, human, money, pct, table } from "./render.ts"
 
 export const VERSION = "0.1.0"
 
@@ -118,6 +118,7 @@ function parse(argv: string[]): Args {
         fail(`unknown argument: ${a} (see --help)`)
     }
   }
+  if (args.models && args.sessions) fail("--models and --sessions are mutually exclusive")
   return args
 }
 
@@ -145,6 +146,7 @@ export function main(argv: string[]): void {
 
   let roots: RootSession[] = rollupFamilies(loadSessions(db))
   const projects = loadProjects(db)
+  db.close() // everything we need is in memory; release the handle promptly
 
   const since = windowSince(args)
   if (since !== null) roots = filterWindow(roots, since, args.active ?? false)
@@ -211,7 +213,8 @@ export function main(argv: string[]): void {
       r.usage.cost.toFixed(6),
       totalTokens(r.usage),
     ])
-    console.log(header)
+    // Context line goes to stderr so stdout is machine-parseable CSV.
+    console.error(header)
     console.log(csv(headers, rows))
     return
   }
@@ -222,7 +225,8 @@ export function main(argv: string[]): void {
     const firstCol = args.models ? "model" : "session"
     const rows = groupRowsFor(args, roots, projects)
     const lines = rows.map((r) => [
-      args.sessions ? clip(r.label, 32) : r.label,
+      // clean() strips terminal escapes from LLM-generated labels (see render.ts)
+      args.sessions ? clip(clean(r.label), 32) : clean(r.label),
       String(r.sessions),
       ...tokenCols(r.usage),
       money(r.usage.cost),
@@ -240,7 +244,7 @@ export function main(argv: string[]): void {
     console.log(table([firstCol, "sessions", "in", "out", "rsn", "cache", "hit", "cost", "total"], lines))
   } else {
     const lines = byProject(roots, projects).map((r) => [
-      clip(r.label, 28),
+      clip(clean(r.label), 28),
       String(r.sessions),
       ...tokenCols(r.usage),
       money(r.usage.cost),
@@ -260,5 +264,10 @@ function groupRowsFor(args: Args, roots: RootSession[], projects: ReturnType<typ
 
 function shortPath(p: string): string {
   const home = process.env.HOME ?? process.env.USERPROFILE ?? ""
-  return home && p.startsWith(home) ? "~" + p.slice(home.length) : p
+  if (!home) return p
+  // Windows paths are case-insensitive; other platforms are not.
+  const ci = process.platform === "win32"
+  const a = ci ? home.toLowerCase() : home
+  const b = ci ? p.toLowerCase() : p
+  return b.startsWith(a) ? "~" + p.slice(home.length) : p
 }

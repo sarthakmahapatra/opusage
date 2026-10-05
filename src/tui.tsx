@@ -28,10 +28,18 @@ export default Plugin.define({
 function fmt(n: number): string {
   if (!Number.isFinite(n) || n < 0) return "0"
   if (n < 1e3) return String(Math.round(n))
+  const units = [1e3, 1e6, 1e9, 1e12] as const
+  const suffix = ["k", "M", "b", "t"] as const
+  let i = units.length - 1
+  while (n < units[i]) i--
   const scale = (x: number) => (x >= 100 ? String(Math.round(x)) : x.toFixed(1).replace(/\.0$/, ""))
-  if (n >= 1e9) return scale(n / 1e9) + "b"
-  if (n >= 1e6) return scale(n / 1e6) + "M"
-  return scale(n / 1e3) + "k"
+  let text = scale(n / units[i])
+  // Promote when rounding bumps the value onto the next unit (999.6k -> 1M).
+  if (text === "1000" && i < units.length - 1) {
+    i += 1
+    text = scale(n / units[i])
+  }
+  return text + suffix[i]
 }
 
 function money(n: number): string {
